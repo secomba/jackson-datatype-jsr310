@@ -20,6 +20,8 @@ import java.time.Instant;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 
 /**
  * Serializer for Java 8 temporal {@link Instant}s, {@link OffsetDateTime}, and {@link ZonedDateTime}s.
@@ -34,7 +36,22 @@ public final class InstantSerializer extends InstantSerializerBase<Instant>
     public static final InstantSerializer INSTANCE = new InstantSerializer();
 
     protected InstantSerializer() {
-        super(Instant.class, Instant::toEpochMilli, Instant::getEpochSecond, Instant::getNano,
+        super(Instant.class, new ToLongFunction<Instant>() {
+                    @Override
+                    public long applyAsLong(Instant instant) {
+                        return instant.toEpochMilli();
+                    }
+                }, new ToLongFunction<Instant>() {
+                    @Override
+                    public long applyAsLong(Instant instant) {
+                        return instant.getEpochSecond();
+                    }
+                }, new ToIntFunction<Instant>() {
+                    @Override
+                    public int applyAsInt(Instant instant) {
+                        return instant.getNano();
+                    }
+                },
                 // null -> use 'value.toString()', default format
                 null);
     }

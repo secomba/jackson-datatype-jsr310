@@ -3,6 +3,8 @@ package com.fasterxml.jackson.datatype.jsr310.ser;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 
 import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializationFeature;
@@ -26,8 +28,23 @@ public class ZonedDateTimeSerializer extends InstantSerializerBase<ZonedDateTime
     }
 
     public ZonedDateTimeSerializer(DateTimeFormatter formatter) {
-        super(ZonedDateTime.class, dt -> dt.toInstant().toEpochMilli(),
-              ZonedDateTime::toEpochSecond, ZonedDateTime::getNano,
+        super(ZonedDateTime.class, new ToLongFunction<ZonedDateTime>() {
+                    @Override
+                    public long applyAsLong(ZonedDateTime dt) {
+                        return dt.toInstant().toEpochMilli();
+                    }
+                },
+                new ToLongFunction<ZonedDateTime>() {
+                    @Override
+                    public long applyAsLong(ZonedDateTime zonedDateTime) {
+                        return zonedDateTime.toEpochSecond();
+                    }
+                }, new ToIntFunction<ZonedDateTime>() {
+                    @Override
+                    public int applyAsInt(ZonedDateTime zonedDateTime) {
+                        return zonedDateTime.getNano();
+                    }
+                },
               formatter);
         _writeZoneId = null;
     }

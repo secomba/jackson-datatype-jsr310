@@ -2,6 +2,8 @@ package com.fasterxml.jackson.datatype.jsr310.ser;
 
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.function.ToIntFunction;
+import java.util.function.ToLongFunction;
 
 // TODO deprecate this: SerializationFeature config should be respected,
 // default behaviour should be to serialize according to ISO-8601 format
@@ -18,8 +20,23 @@ public class ZonedDateTimeWithZoneIdSerializer extends InstantSerializerBase<Zon
     public static final ZonedDateTimeWithZoneIdSerializer INSTANCE = new ZonedDateTimeWithZoneIdSerializer();
 
     protected ZonedDateTimeWithZoneIdSerializer() {
-        super(ZonedDateTime.class, dt -> dt.toInstant().toEpochMilli(),
-                ZonedDateTime::toEpochSecond, ZonedDateTime::getNano,
+        super(ZonedDateTime.class, new ToLongFunction<ZonedDateTime>() {
+                    @Override
+                    public long applyAsLong(ZonedDateTime dt) {
+                        return dt.toInstant().toEpochMilli();
+                    }
+                },
+                new ToLongFunction<ZonedDateTime>() {
+                    @Override
+                    public long applyAsLong(ZonedDateTime zonedDateTime) {
+                        return zonedDateTime.toEpochSecond();
+                    }
+                }, new ToIntFunction<ZonedDateTime>() {
+                    @Override
+                    public int applyAsInt(ZonedDateTime zonedDateTime) {
+                        return zonedDateTime.getNano();
+                    }
+                },
                 // Serialize in a backwards compatible way: with zone id, using toString method
                 null);
     }
